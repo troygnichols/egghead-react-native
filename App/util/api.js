@@ -3,7 +3,19 @@ const Api = {
   githubBaseUrl: 'https://api.github.com',
 
   getBio(username) {
+    if (typeof username === 'undefined' || username === null) {
+      return Promise.reject({
+        message: 'User not found'
+      });
+    }
+
     username = username.toLowerCase().trim();
+    if (username.length === 0) {
+      return Promise.reject({
+        message: 'User not found'
+      });
+    }
+
     return this.retr(`users/${username}`);
   },
 
@@ -14,11 +26,16 @@ const Api = {
 
   retr(endpoint) {
     return fetch(`${this.githubBaseUrl}/${endpoint}`)
-      .then((res) => {
-        return res.json();
-      })
-      .catch((err) => {
-        console.error(err);
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        return Promise.reject({
+          message: response.status === 404 ?
+            'User not found' :
+            'Could not communicate with Github',
+          response
+        });
       });
   }
 };

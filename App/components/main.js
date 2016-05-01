@@ -9,6 +9,7 @@ import React, {
 } from 'react-native';
 
 import Api from '../util/api';
+import Dashboard from './Dashboard';
 
 class Main extends Component {
   constructor(props) {
@@ -31,14 +32,42 @@ class Main extends Component {
       isLoading: true
     });
 
-    console.log('submit', this.state.username);
+    Api.getBio(this.state.username).then((userInfo) => {
+      this.props.navigator.push({
+        title: userInfo.name || 'Select an Option',
+        component: Dashboard,
+        passProps: { userInfo }
+      });
 
-    Api.getBio(this.state.username).then((res) => {
-      console.log(res);
+      this.setState({
+        error: false,
+        isLoading: false,
+        username: ''
+      });
+    })
+    .catch((err) => {
+      this.setState({
+        error: err.message,
+        isLoading: false
+      });
     });
   }
 
   render() {
+    const showErr = () => {
+      if (this.state.error) {
+        return (
+          <View>
+            <Text>{this.state.error}</Text>
+          </View>
+        );
+      } else {
+        return (
+          <View/>
+        );
+      }
+    }
+
     return (
       <View style={styles.mainContainer}>
         <Text style={styles.title}>Search for a Github user</Text>
@@ -52,6 +81,11 @@ class Main extends Component {
           underlayColor='white'>
           <Text style={styles.buttonText}>SEARCH</Text>
         </TouchableHighlight>
+        <ActivityIndicatorIOS
+          animating={this.state.isLoading}
+          color="#111"
+          size="large"/>
+        {showErr()}
       </View>
     )
   }
